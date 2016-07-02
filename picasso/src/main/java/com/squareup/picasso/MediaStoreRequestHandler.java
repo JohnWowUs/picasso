@@ -26,6 +26,11 @@ import java.io.IOException;
 
 import static android.content.ContentResolver.SCHEME_CONTENT;
 import static android.content.ContentUris.parseId;
+import static android.media.ExifInterface.ORIENTATION_UNDEFINED;
+import static android.media.ExifInterface.ORIENTATION_NORMAL;
+import static android.media.ExifInterface.ORIENTATION_ROTATE_90;
+import static android.media.ExifInterface.ORIENTATION_ROTATE_180;
+import static android.media.ExifInterface.ORIENTATION_ROTATE_270;
 import static android.provider.MediaStore.Images;
 import static android.provider.MediaStore.Video;
 import static android.provider.MediaStore.Images.Thumbnails.FULL_SCREEN_KIND;
@@ -106,12 +111,22 @@ class MediaStoreRequestHandler extends ContentStreamRequestHandler {
     try {
       cursor = contentResolver.query(uri, CONTENT_ORIENTATION, null, null, null);
       if (cursor == null || !cursor.moveToFirst()) {
-        return 0;
+        return ORIENTATION_UNDEFINED;
       }
-      return cursor.getInt(0);
+
+     switch (cursor.getInt(0)) {
+         case 90:
+           return ORIENTATION_ROTATE_90;
+         case 180:
+           return ORIENTATION_ROTATE_180;
+         case 270:
+           return ORIENTATION_ROTATE_270;
+         default:
+           return ORIENTATION_NORMAL;
+      }
     } catch (RuntimeException ignored) {
       // If the orientation column doesn't exist, assume no rotation.
-      return 0;
+      return ORIENTATION_UNDEFINED;
     } finally {
       if (cursor != null) {
         cursor.close();
